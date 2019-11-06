@@ -15,7 +15,7 @@ function askPermission() {
                 });
 }
 
-function oneWayCommunication(trainNumber,origin,target) {
+function oneWayCommunication(trainNumber, origin, target) {
         // ONE WAY COMMUNICATION
         if (navigator.serviceWorker.controller) {
                 console.log("Sending message to service worker");
@@ -52,7 +52,7 @@ window.onload = function() {
 
         }
         $("#update").click(function() {
-                oneWayCommunication($("#trainNumber").val(),$("#origin").val(),$("#target").val());
+                oneWayCommunication($("#trainNumber").val(), $("#origin").val(), $("#target").val());
         });
 
 };

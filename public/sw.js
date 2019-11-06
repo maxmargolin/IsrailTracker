@@ -1,6 +1,6 @@
-lookingFor = 284;
-origin = 4900;
-target = 3600;
+lookingFor = 231;
+origin = 4600;
+target = 3900;
 
 function zeroPadTime(number) {
         return mins = ('0' + number).slice(-2);
@@ -14,8 +14,8 @@ pushEvenet = function(event) {
         function checker() {
                 //standart time desplay
                 var today = new Date();
-                var year = getFullYear()
-                var day = zeroPadTime(today.getMonth());
+                var year = today.getFullYear()
+                var month = zeroPadTime(today.getMonth() + 1);
                 var day = zeroPadTime(today.getDate());
                 var hours = zeroPadTime(today.getHours());
                 var minutes = zeroPadTime(today.getMinutes());
@@ -24,7 +24,7 @@ pushEvenet = function(event) {
 
                 var time = hours + ":" + minutes + ":" + seconds;
                 //get train delay data
-                api_url = 'https://www.rail.co.il/apiinfo/api/Plan/GetRoutes?OId=' + origin + '&TId=' + target + '&Date=' + year + moth + day + '&Hour=' + hours + minutes;
+                api_url = 'https://www.rail.co.il/apiinfo/api/Plan/GetRoutes?OId=' + origin + '&TId=' + target + '&Date=' + year + month + day + '&Hour=' + hours + minutes;
                 console.log(api_url);
                 fetch(api_url)
                         .then(res => res.json())
@@ -54,7 +54,7 @@ pushEvenet = function(event) {
                         }).catch(err => console.error(err));
 
         }
-        setInterval(checker, 10000)
+        setInterval(checker, 30000)
 
 };
 
