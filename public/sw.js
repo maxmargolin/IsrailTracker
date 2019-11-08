@@ -3,11 +3,12 @@ origin = 4600;
 target = 4900;
 last_push = 0;
 
+//standart time text
 function zeroPadTime(number) {
         return mins = ('0' + number).slice(-2);
 }
 
-
+// handle push,run a loop for checking the israil api
 pushEvenet = function(event) {
         console.log("in push event");
         info = "can't find train";
@@ -62,27 +63,31 @@ pushEvenet = function(event) {
                         }).catch(err => console.error(err));
         }
         setInterval(checker, 10000)
-
 };
 
 
 self.addEventListener('push', pushEvenet);
 
+//make a push happen, shock the service worker to life
 function TriggerPush() {
         pushTrigger = new Event('push');
         self.dispatchEvent(pushTrigger);
 }
 
+//on install of service worker,trigger a push
 self.addEventListener('install', (event) => {
         console.log("in install event");
         event.waitUntil(self.skipWaiting());
         TriggerPush();
 });
+
 self.addEventListener('activate', function(event) {
         event.waitUntil(self.clients.claim()); // Become available to all pages
 });
 
 
+
+//on message from main page
 self.addEventListener('message', function(event) {
         console.log("in message event");
         var data = event.data;

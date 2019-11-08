@@ -2,6 +2,7 @@ defaultTrain = 131;
 defaultOrigin = 4600;
 defaultTarget = 4900;
 
+//ask permission to send notificaions
 function askPermission() {
         return new Promise(function(resolve, reject) {
                         const permissionResult = Notification.requestPermission(function(result) {
@@ -19,6 +20,8 @@ function askPermission() {
                 });
 }
 
+
+//send message with new configuration to the service worker
 function oneWayCommunication(trainNumber, origin, target) {
         // ONE WAY COMMUNICATION
         if (navigator.serviceWorker.controller) {
@@ -34,6 +37,8 @@ function oneWayCommunication(trainNumber, origin, target) {
         }
 }
 
+
+// register background service worker to deal with all the ai stuff
 function reg() {
         navigator.serviceWorker.register('sw.js', {
                         scope: ''
@@ -49,18 +54,22 @@ function reg() {
 }
 
 
-
+// change cache
 function updateCache() {
         localStorage['trainNumber'] = $("#trainNumber").val()
         localStorage['origin'] = $("#origin").val()
         localStorage['target'] = $("#target").val()
 }
 
+//update input boxes from cache fedaults
 function updateFromCache() {
-        $("#trainNumber").val(localStorage['trainNumber'] || defaultTrain);
-        $("#origin").val(localStorage['origin'] || defaultOrigin);
-        $("#target").val(localStorage['target'] || defaultTarget);
+        $("#trainNumber").val(localStorage['trainNumber']);
+        $("#origin").val(localStorage['origin']);
+        $("#target").val(localStorage['target']);
 }
+
+
+
 window.onload = function() {
         updateFromCache();
         askPermission();
