@@ -1,63 +1,80 @@
-function askPermission() {
-  return new Promise(function(resolve, reject) {
-      const permissionResult = Notification.requestPermission(function(result) {
-        resolve(result);
-      });
+defaultTrain = 131;
+defaultOrigin = 4600;
+defaultTarget = 4900;
 
-      if (permissionResult) {
-        permissionResult.then(resolve, reject);
-      }
-    })
-    .then(function(permissionResult) {
-      if (permissionResult !== 'granted') {
-        throw new Error('We weren\'t granted permission.');
-      }
-    });
+function askPermission() {
+        return new Promise(function(resolve, reject) {
+                        const permissionResult = Notification.requestPermission(function(result) {
+                                resolve(result);
+                        });
+
+                        if (permissionResult) {
+                                permissionResult.then(resolve, reject);
+                        }
+                })
+                .then(function(permissionResult) {
+                        if (permissionResult !== 'granted') {
+                                throw new Error('We weren\'t granted permission.');
+                        }
+                });
 }
 
 function oneWayCommunication(trainNumber, origin, target) {
-  // ONE WAY COMMUNICATION
-  if (navigator.serviceWorker.controller) {
-    console.log("Sending message to service worker");
-    navigator.serviceWorker.controller.postMessage({
-      "command": "oneWayCommunication",
-      "train": trainNumber,
-      "origin": origin,
-      "target": target
-    });
-  } else {
-    console.log("No active ServiceWorker");
-  }
+        // ONE WAY COMMUNICATION
+        if (navigator.serviceWorker.controller) {
+                console.log("Sending message to service worker");
+                navigator.serviceWorker.controller.postMessage({
+                        "command": "oneWayCommunication",
+                        "train": trainNumber,
+                        "origin": origin,
+                        "target": target
+                });
+        } else {
+                console.log("No active ServiceWorker");
+        }
 }
 
 function reg() {
-  navigator.serviceWorker.register('sw.js', {
-      scope: ''
-    })
-    .then((reg) => {
-      // registration worked
-      console.log('Registration succeeded. Scope is ' + reg.scope);
+        navigator.serviceWorker.register('sw.js', {
+                        scope: ''
+                })
+                .then((reg) => {
+                        // registration worked
+                        console.log('Registration succeeded. Scope is ' + reg.scope);
 
-    }).catch((error) => {
-      // registration failed
-      console.log('Registration failed with ' + error);
-    });
+                }).catch((error) => {
+                        // registration failed
+                        console.log('Registration failed with ' + error);
+                });
 }
 
+
+
+function updateCache() {
+        localStorage['trainNumber'] = $("#trainNumber").val()
+        localStorage['origin'] = $("#origin").val()
+        localStorage['target'] = $("#target").val()
+}
+
+function updateFromCache() {
+        $("#trainNumber").val(localStorage['trainNumber'] || defaultTrain);
+        $("#origin").val(localStorage['origin'] || defaultOrigin);
+        $("#target").val(localStorage['target'] || defaultTarget);
+}
 window.onload = function() {
-  askPermission();
-  $("#update").click(function() {
-    navigator.serviceWorker.getRegistrations().then(
+        updateFromCache();
+        askPermission();
+        $("#update").click(function() {
+                navigator.serviceWorker.getRegistrations().then(
+                        function(registrations) {
+                                for (let registration of registrations) {
+                                        registration.unregister();
+                                        reg();
+                                }
+                        });
+                oneWayCommunication($("#trainNumber").val(), $("#origin").val(), $("#target").val());
+                updateCache();
+        });
 
-      function(registrations) {
-
-        for (let registration of registrations) {
-          registration.unregister();
-          reg();
-
-        }
-      });
-    oneWayCommunication($("#trainNumber").val(), $("#origin").val(), $("#target").val());
-  });
 
 };
