@@ -34,6 +34,14 @@ pushEvenet = function(event) {
                 api_url = 'https://www.rail.co.il/apiinfo/api/Plan/GetRoutes?OId=' + origin + '&TId=' + target + '&Date=' + year + month + day + '&Hour=' + hours + minutes;
 
                 console.log(lookingFor, " @ ", api_url);
+                const options = {
+                        body: time,
+                        silent: true,
+                        icon: 'icon.png',
+                        tag: 'x'
+                }
+                console.log(time);
+                self.registration.showNotification(time, options);
                 fetch(api_url)
                         .then(res => res.json())
                         .then((data) => {

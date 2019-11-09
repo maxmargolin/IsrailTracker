@@ -16,6 +16,7 @@ function askPermission() {
                 .then(function(permissionResult) {
                         if (permissionResult !== 'granted') {
                                 throw new Error('We weren\'t granted permission.');
+                                ask
                         }
                 });
 }
@@ -91,22 +92,26 @@ function getStationPairs() {
 }
 
 
-
-
 window.onload = function() {
+
         getStationPairs();
         updateFromCache();
-        askPermission();
+
         $("#update").click(function() {
                 navigator.serviceWorker.getRegistrations().then(
                         function(registrations) {
                                 for (let registration of registrations) {
                                         registration.unregister();
-                                        reg();
                                 }
+                                reg();
                         });
                 oneWayCommunication($("#trainNumber").val(), $("#originSelect").val(), $("#targetSelect").val());
                 updateCache();
+        });
+
+
+        $("#allowNotifications").click(function() {
+                askPermission();
         });
 
 
