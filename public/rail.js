@@ -33,7 +33,8 @@ function oneWayCommunication(trainNumber, origin, target) {
                         "target": target
                 });
         } else {
-                console.log("No active ServiceWorker");
+                console.log(navigator.serviceWorker.controller, "No active ServiceWorker");
+                reg();
         }
 }
 
@@ -56,21 +57,44 @@ function reg() {
 
 // change cache
 function updateCache() {
-        localStorage['trainNumber'] = $("#trainNumber").val()
-        localStorage['origin'] = $("#origin").val()
-        localStorage['target'] = $("#target").val()
+        localStorage['trainNumber'] = $("#trainNumber").val();
+        localStorage['origin'] = $("#originSelect").val();
+        localStorage['target'] = $("#targetSelect").val();
 }
 
 //update input boxes from cache fedaults
 function updateFromCache() {
         $("#trainNumber").val(localStorage['trainNumber']);
-        $("#origin").val(localStorage['origin']);
-        $("#target").val(localStorage['target']);
+        $("#originSelect").value = localStorage['origin'];
+        $("#targetSelect").value = localStorage['target'];
 }
 
 
 
+function getStationPairs() {
+        api_url = "https://israiltracker.firebaseapp.com/static_resources/stations.json"
+        fetch(api_url)
+                .then(res => res.json())
+                .then((data) => {
+                        var originSelect = document.getElementById("originSelect");
+                        var targetSelect = document.getElementById("targetSelect");
+                        for (var i in data["Stations"]["Station"]) {
+                                station = data["Stations"]["Station"][i];
+                                optionID = station["StationId"];
+                                optionName = station["EngName"] + " " + station["DescriptionHe"] + " " + station["ArbName"];
+                                originSelect.options[originSelect.options.length] = new Option(optionName, optionID, false, false);
+                                targetSelect.options[targetSelect.options.length] = new Option(optionName, optionID, false, false);
+                        }
+                        originSelect.value = localStorage['origin'];
+                        targetSelect.value = localStorage['target'];
+                }).catch(err => console.error(err));
+}
+
+
+
+
 window.onload = function() {
+        getStationPairs();
         updateFromCache();
         askPermission();
         $("#update").click(function() {
@@ -81,7 +105,7 @@ window.onload = function() {
                                         reg();
                                 }
                         });
-                oneWayCommunication($("#trainNumber").val(), $("#origin").val(), $("#target").val());
+                oneWayCommunication($("#trainNumber").val(), $("#originSelect").val(), $("#targetSelect").val());
                 updateCache();
         });
 

@@ -19,7 +19,6 @@ pushEvenet = function(event) {
                         return -9;
                 }
                 last_push = performance.now();
-                console.log("in checker " + lookingFor);
                 //standart time desplay
                 var today = new Date();
                 var year = today.getFullYear()
@@ -33,6 +32,8 @@ pushEvenet = function(event) {
                 var time = hours + ":" + minutes + ":" + seconds;
                 //get train delay data
                 api_url = 'https://www.rail.co.il/apiinfo/api/Plan/GetRoutes?OId=' + origin + '&TId=' + target + '&Date=' + year + month + day + '&Hour=' + hours + minutes;
+
+                console.log(lookingFor, " @ ", api_url);
                 fetch(api_url)
                         .then(res => res.json())
                         .then((data) => {
@@ -47,7 +48,7 @@ pushEvenet = function(event) {
                                                         info = "no delay";
                                                 } else if (lastDelay != currentDelay) {
                                                         lastDelay = train["DifMin"];
-                                                        console.log(title+" "+info);
+                                                        console.log(title + " " + info);
                                                         const title = "Delay: " + currentDelay;
                                                 }
                                                 const options = {
@@ -96,6 +97,12 @@ self.addEventListener('message', function(event) {
                 lookingFor = data.train;
                 origin = data.origin;
                 target = data.target;
+                console.log("new confic received in service worker",lookingFor, origin, target);
+                self.registration.showNotification("configuration pdated 👀", {
+                        body: (lookingFor + " " + origin + " " + target)
+                });
+        } else {
+                console.log("strage communication protocol");
         }
         TriggerPush();
 });

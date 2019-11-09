@@ -1,17 +1,37 @@
 <html xmlns="http://www.w3.org/1999/html">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <head>
   <title>max rail notifier</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="rail.js"></script>
+  <link rel="icon" href="icon.png">
   <link rel="stylesheet" href="all.css">
+  <link rel="stylesheet" href="form.css">
 </head>
+<form>
+  <div class="group">
+    <input type="text" id="trainNumber" required>
+    <span class="highlight"></span>
+    <span class="bar"></span>
+    <label>מספר רכבת</label>
+  </div>
 
-<h3 align="middle" id="headline">notifier</h3>
-<hr>
-Train number <br/><input type="number" id="trainNumber" value="231"><br/>
-origin <br/><input type="number" id="origin" value="4600"><br/>
-Target <br/><input type="number" id="target" value="4900"><br/>
+  תחנת מקור
+  <div class="select">
+    <select id="originSelect">
+    </select>
+  </div>
+  <br/> תחנת יעד
+  <div class="select">
+    <select id="targetSelect">
+    </select>
+  </div>
+</form>
 
-<button id="update">update</button>
+
+<button id="update" class="brk-btn">
+  update
+</button>
+
 </html>
