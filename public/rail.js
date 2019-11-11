@@ -35,7 +35,6 @@ function oneWayCommunication(trainNumber, origin, target) {
                 });
         } else {
                 console.log(navigator.serviceWorker.controller, "No active ServiceWorker");
-                reg();
         }
 }
 
@@ -45,9 +44,9 @@ function reg() {
         navigator.serviceWorker.register('sw.js', {
                         scope: ''
                 })
-                .then((reg) => {
+                .then((regr) => {
                         // registration worked
-                        console.log('Registration succeeded. Scope is ' + reg.scope);
+                        console.log('Registration succeeded. Scope is ' + regr.scope);
 
                 }).catch((error) => {
                         // registration failed
@@ -98,13 +97,16 @@ window.onload = function() {
         updateFromCache();
 
         $("#update").click(function() {
-                navigator.serviceWorker.getRegistrations().then(
-                        function(registrations) {
-                                for (let registration of registrations) {
-                                        registration.unregister();
-                                }
-                                reg();
-                        });
+                /*
+                      navigator.serviceWorker.getRegistrations().then(
+                              function(registrations) {
+                                      for (let registration of registrations) {
+                                              registration.unregister();
+                                      }
+                                      reg();
+                              });
+                              */
+                reg();
                 oneWayCommunication($("#trainNumber").val(), $("#originSelect").val(), $("#targetSelect").val());
                 updateCache();
         });

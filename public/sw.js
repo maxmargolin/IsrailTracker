@@ -10,7 +10,7 @@ function zeroPadTime(number) {
 
 // handle push,run a loop for checking the israil api
 pushEvenet = function(event) {
-        console.log("in push event");
+        console.log("in push event", event);
         info = "can't find train";
         lastDelay = -99
 
@@ -90,9 +90,6 @@ self.addEventListener('install', (event) => {
         TriggerPush();
 });
 
-self.addEventListener('activate', function(event) {
-        event.waitUntil(self.clients.claim()); // Become available to all pages
-});
 
 
 
@@ -105,7 +102,7 @@ self.addEventListener('message', function(event) {
                 lookingFor = data.train;
                 origin = data.origin;
                 target = data.target;
-                console.log("new confic received in service worker",lookingFor, origin, target);
+                console.log("new confic received in service worker", lookingFor, origin, target);
                 self.registration.showNotification("configuration pdated 👀", {
                         body: (lookingFor + " " + origin + " " + target)
                 });
@@ -114,3 +111,63 @@ self.addEventListener('message', function(event) {
         }
         TriggerPush();
 });
+
+
+
+
+
+
+importScripts('https://www.gstatic.com/firebasejs/7.2.3/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/7.2.3/firebase-database.js');
+
+var config = {
+        apiKey: "AIzaSyBu1xYGxPEji8zxVeYQINjPTFdvrO5NUFI",
+        authDomain: "israiltracker.firebaseapp.com",
+        databaseURL: "https://israiltracker.firebaseio.com",
+        storageBucket: "bucket.appspot.com"
+};
+firebase.initializeApp(config);
+
+// Get a reference to the database service
+var database = firebase.database();
+
+/////////////////////
+// urlB64ToUint8Array is a magic function that will encode the base64 public key
+// to Array buffer which is needed by the subscription option
+const urlB64ToUint8Array = base64String => {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/')
+        const rawData = atob(base64)
+        const outputArray = new Uint8Array(rawData.length)
+        for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i)
+        }
+        return outputArray
+}
+
+var database = firebase.database();
+
+function writeUserData(data) {
+        firebase.database().ref('/temp').push(data.toJSON());
+}
+const saveSubscription = async subscription => {
+        writeUserData(subscription);
+        return 5; //response.json()
+}
+self.addEventListener('activate', async () => {
+        console.log("activated");
+        // This will be called only once when the service worker is installed for first time.
+        try {
+                const applicationServerKey = urlB64ToUint8Array(
+                        'BJ5IxJBWdeqFDJTvrZ4wNRu7UY2XigDXjgiUBYEYVXDudxhEs0ReOJRBcBHsPYgZ5dyV8VjyqzbQKS8V7bUAglk'
+                )
+                const options = {
+                        applicationServerKey,
+                        userVisibleOnly: true
+                }
+                const subscription = await self.registration.pushManager.subscribe(options)
+                saveSubscription(subscription)
+        } catch (err) {
+                console.log('Error', err)
+        }
+})
