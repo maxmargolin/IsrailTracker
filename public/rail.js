@@ -110,7 +110,14 @@ window.onload = function() {
                 oneWayCommunication($("#trainNumber").val(), $("#originSelect").val(), $("#targetSelect").val());
                 updateCache();
         });
-
+        $("#unregister").click(function() {
+                navigator.serviceWorker.getRegistrations().then(
+                        function(registrations) {
+                                for (let registration of registrations) {
+                                        registration.unregister();
+                                }
+                        });
+        });
 
         $("#allowNotifications").click(function() {
                 askPermission();
