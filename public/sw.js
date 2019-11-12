@@ -92,7 +92,6 @@ self.addEventListener('install', (event) => {
 
 
 
-
 //on message from main page
 self.addEventListener('message', function(event) {
         console.log("in message event");
@@ -119,6 +118,7 @@ self.addEventListener('message', function(event) {
 
 importScripts('https://www.gstatic.com/firebasejs/7.2.3/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/7.2.3/firebase-database.js');
+importScripts('https://www.gstatic.com/firebasejs/7.2.3/firebase-auth.js');
 
 var config = {
         apiKey: "AIzaSyBu1xYGxPEji8zxVeYQINjPTFdvrO5NUFI",
@@ -130,6 +130,28 @@ firebase.initializeApp(config);
 
 // Get a reference to the database service
 var database = firebase.database();
+
+
+firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+                var uid = user.uid;
+                console.log("user id", uid);
+
+
+                saveSubscription(uid)
+
+        } else {
+                console.log("signed out");
+        }
+});
+
+function activateWithFirebase() {
+        firebase.auth().signInAnonymously().catch(function(error) {
+                console.log("error signing in", error);
+        });
+}
+
+
 
 /////////////////////
 // urlB64ToUint8Array is a magic function that will encode the base64 public key
@@ -147,27 +169,29 @@ const urlB64ToUint8Array = base64String => {
 
 var database = firebase.database();
 
-function writeUserData(data) {
-        firebase.database().ref('/temp').push(data.toJSON());
+
+
+
+
+function writeUserData(data,uid) {
+        console.log(data);
+        firebase.database().ref('/users/' + uid).set(data.toJSON());
 }
-const saveSubscription = async subscription => {
-        writeUserData(subscription);
+const saveSubscription = async uid => {
+        const applicationServerKey = urlB64ToUint8Array(
+                'BJ5IxJBWdeqFDJTvrZ4wNRu7UY2XigDXjgiUBYEYVXDudxhEs0ReOJRBcBHsPYgZ5dyV8VjyqzbQKS8V7bUAglk'
+        )
+        const options = {
+                applicationServerKey,
+                userVisibleOnly: true
+        }
+        const subscription = await self.registration.pushManager.subscribe(options);
+        writeUserData(subscription,uid);
         return 5; //response.json()
 }
 self.addEventListener('activate', async () => {
-        console.log("activated");
+        console.log("activating");
+
         // This will be called only once when the service worker is installed for first time.
-        try {
-                const applicationServerKey = urlB64ToUint8Array(
-                        'BJ5IxJBWdeqFDJTvrZ4wNRu7UY2XigDXjgiUBYEYVXDudxhEs0ReOJRBcBHsPYgZ5dyV8VjyqzbQKS8V7bUAglk'
-                )
-                const options = {
-                        applicationServerKey,
-                        userVisibleOnly: true
-                }
-                const subscription = await self.registration.pushManager.subscribe(options)
-                saveSubscription(subscription)
-        } catch (err) {
-                console.log('Error', err)
-        }
+        activateWithFirebase();
 })
