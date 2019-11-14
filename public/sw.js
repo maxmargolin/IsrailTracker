@@ -2,7 +2,8 @@ lookingFor = 231;
 origin = 4600;
 target = 4900;
 last_push = 0;
-
+var uid = undefined;
+var title = "initial"
 //standart time text
 function zeroPadTime(number) {
         return mins = ('0' + number).slice(-2);
@@ -15,6 +16,7 @@ pushEvenet = function(event) {
         lastDelay = -99
 
         function checker() {
+                title = "temp";
                 if (performance.now() - last_push < 8000) {
                         return -9;
                 }
@@ -51,11 +53,12 @@ pushEvenet = function(event) {
                                                 currentDelay = train["DifMin"];
 
                                                 title = train["DifType"] + ": " + currentDelay + " min";
-                                                info = "For train " + train["TrainNumber"] + "\nAs of [ " + time + "]";
+                                                var info = "For train " + train["TrainNumber"] + "\nAs of [ " + time + "]";
                                                 if (train["DifType"] != "DELAY") {
                                                         info = "no delay";
                                                 } else if (lastDelay != currentDelay) {
                                                         lastDelay = train["DifMin"];
+                                                        title = train["DifType"] + ": " + currentDelay + " min";
                                                         console.log(title + " " + info);
                                                         const title = "Delay: " + currentDelay;
                                                 }
@@ -91,6 +94,9 @@ self.addEventListener('install', (event) => {
 });
 
 
+function removeUser(uid) {
+        firebase.database().ref('/users/' + uid).remove();
+}
 
 //on message from main page
 self.addEventListener('message', function(event) {
@@ -101,12 +107,15 @@ self.addEventListener('message', function(event) {
                 lookingFor = data.train;
                 origin = data.origin;
                 target = data.target;
-                console.log("new confic received in service worker", lookingFor, origin, target);
+                console.log("new config received in service worker", lookingFor, origin, target);
+
+                saveSubscription(uid);
                 self.registration.showNotification("configuration pdated 👀", {
                         body: (lookingFor + " " + origin + " " + target)
                 });
-        } else {
-                console.log("strage communication protocol");
+        } else if (data.command == "unregister") {
+                console.log("message said unregister", uid);
+                removeUser(uid)
         }
         TriggerPush();
 });
@@ -132,13 +141,26 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 
+
+const saveSubscription = async uid => {
+        const applicationServerKey = urlB64ToUint8Array(
+                'BJ5IxJBWdeqFDJTvrZ4wNRu7UY2XigDXjgiUBYEYVXDudxhEs0ReOJRBcBHsPYgZ5dyV8VjyqzbQKS8V7bUAglk'
+        )
+        const options = {
+                applicationServerKey,
+                userVisibleOnly: true
+        }
+        const subscription = await self.registration.pushManager.subscribe(options);
+        userToFirebase(subscription, uid);
+        return 5; //response.json()
+}
+
 firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
-                var uid = user.uid;
+                uid = user.uid;
                 console.log("user id", uid);
 
 
-                saveSubscription(uid)
 
         } else {
                 console.log("signed out");
@@ -173,25 +195,15 @@ var database = firebase.database();
 
 
 
-function writeUserData(data,uid) {
+
+function userToFirebase(data, uid) {
         console.log(data);
         firebase.database().ref('/users/' + uid).set(data.toJSON());
 }
-const saveSubscription = async uid => {
-        const applicationServerKey = urlB64ToUint8Array(
-                'BJ5IxJBWdeqFDJTvrZ4wNRu7UY2XigDXjgiUBYEYVXDudxhEs0ReOJRBcBHsPYgZ5dyV8VjyqzbQKS8V7bUAglk'
-        )
-        const options = {
-                applicationServerKey,
-                userVisibleOnly: true
-        }
-        const subscription = await self.registration.pushManager.subscribe(options);
-        writeUserData(subscription,uid);
-        return 5; //response.json()
-}
-self.addEventListener('activate', async () => {
-        console.log("activating");
 
+self.addEventListener('activate', function(event) {
+        event.waitUntil(self.clients.claim()); // Become available to all pages
+        console.log("activating");
         // This will be called only once when the service worker is installed for first time.
         activateWithFirebase();
 })

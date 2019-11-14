@@ -23,10 +23,10 @@ function askPermission() {
 
 
 //send message with new configuration to the service worker
-function oneWayCommunication(trainNumber, origin, target) {
+function updateTrainConfig(trainNumber, origin, target) {
         // ONE WAY COMMUNICATION
         if (navigator.serviceWorker.controller) {
-                console.log("Sending message to service worker");
+                console.log("Sending train config service worker");
                 navigator.serviceWorker.controller.postMessage({
                         "command": "oneWayCommunication",
                         "train": trainNumber,
@@ -35,6 +35,19 @@ function oneWayCommunication(trainNumber, origin, target) {
                 });
         } else {
                 console.log(navigator.serviceWorker.controller, "No active ServiceWorker");
+        }
+}
+
+//send message to service worker asking to delet user from firebase
+function unregisterMessage() {
+        // ONE WAY COMMUNICATION
+        if (navigator.serviceWorker.controller) {
+                console.log("Sending unregister message to service worker");
+                navigator.serviceWorker.controller.postMessage({
+                        "command": "unregister"
+                });
+        } else {
+                console.log(navigator.serviceWorker.controller, "unregister: No active ServiceWorker");
         }
 }
 
@@ -93,31 +106,16 @@ function getStationPairs() {
 
 window.onload = function() {
 
+
+          reg();
         getStationPairs();
         updateFromCache();
 
         $("#update").click(function() {
-                /*
-                      navigator.serviceWorker.getRegistrations().then(
-                              function(registrations) {
-                                      for (let registration of registrations) {
-                                              registration.unregister();
-                                      }
-                                      reg();
-                              });
-                              */
-                reg();
-                oneWayCommunication($("#trainNumber").val(), $("#originSelect").val(), $("#targetSelect").val());
+                updateTrainConfig($("#trainNumber").val(), $("#originSelect").val(), $("#targetSelect").val());
                 updateCache();
         });
-        $("#unregister").click(function() {
-                navigator.serviceWorker.getRegistrations().then(
-                        function(registrations) {
-                                for (let registration of registrations) {
-                                        registration.unregister();
-                                }
-                        });
-        });
+        $("#unregister").click(unregisterMessage);
 
         $("#allowNotifications").click(function() {
                 askPermission();
