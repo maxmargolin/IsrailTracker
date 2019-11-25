@@ -1,4 +1,6 @@
 lookingFor = 231;
+
+
 origin = 4600;
 target = 4900;
 last_push = 0;
@@ -35,6 +37,18 @@ pushEvenet = function(event) {
                 //get train delay data
                 api_url = 'https://www.rail.co.il/apiinfo/api/Plan/GetRoutes?OId=' + origin + '&TId=' + target + '&Date=' + year + month + day + '&Hour=' + hours + minutes;
 
+                caches.open('v1').then(function(cache) {
+                        cache.match("trainNumber", {}).then(function(response) {
+                                response.blob().then(function(myBlob) {
+                                        var reader = new FileReader();
+                                        reader.onload = function() {
+                                                console.log("zanz", reader.result);
+                                                lookingFor = reader.result
+                                        }
+                                        reader.readAsText(myBlob);
+                                });
+                        });
+                });
                 console.log(lookingFor, " @ ", api_url);
                 const options = {
                         body: time,
@@ -43,7 +57,7 @@ pushEvenet = function(event) {
                         tag: 'x'
                 }
                 console.log(time);
-                self.registration.showNotification(time, options);
+                self.registration.showNotification(time + " " + lookingFor, options);
                 fetch(api_url)
                         .then(res => res.json())
                         .then((data) => {
@@ -105,6 +119,12 @@ self.addEventListener('message', function(event) {
 
         if (data.command == "oneWayCommunication") {
                 lookingFor = data.train;
+
+
+
+                caches.open('v1').then(function(cache) {
+                        cache.put("trainNumber", new Response(lookingFor));
+                });
                 origin = data.origin;
                 target = data.target;
                 console.log("new config received in service worker", lookingFor, origin, target);
