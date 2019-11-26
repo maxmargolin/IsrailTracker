@@ -42,51 +42,51 @@ pushEvenet = function(event) {
                                 response.blob().then(function(myBlob) {
                                         var reader = new FileReader();
                                         reader.onload = function() {
-                                                console.log("zanz", reader.result);
-                                                lookingFor = reader.result
+                                                lookingFor = reader.result;
+                                                console.log(lookingFor, " @ ", api_url);
+                                                const options = {
+                                                        body: time,
+                                                        silent: true,
+                                                        icon: 'icon.png',
+                                                        tag: 'x'
+                                                }
+                                                console.log(time);
+                                                self.registration.showNotification(time + " " + lookingFor, options);
+                                                fetch(api_url)
+                                                        .then(res => res.json())
+                                                        .then((data) => {
+                                                                for (var i in data["Data"]["TrainPositions"]) {
+                                                                        var train = data["Data"]["TrainPositions"][i];
+                                                                        if (train["TrainNumber"] == lookingFor) {
+                                                                                currentDelay = train["DifMin"];
+
+                                                                                title = train["DifType"] + ": " + currentDelay + " min";
+                                                                                var info = "For train " + train["TrainNumber"] + "\nAs of [ " + time + "]";
+                                                                                if (train["DifType"] != "DELAY") {
+                                                                                        info = "no delay";
+                                                                                } else if (lastDelay != currentDelay) {
+                                                                                        lastDelay = train["DifMin"];
+                                                                                        title = train["DifType"] + ": " + currentDelay + " min";
+                                                                                        console.log(title + " " + info);
+                                                                                        const title = "Delay: " + currentDelay;
+                                                                                }
+                                                                                const options = {
+                                                                                        body: info,
+                                                                                        silent: true,
+                                                                                        icon: 'icon.png',
+                                                                                        tag: 'report'
+                                                                                }
+
+                                                                                self.registration.showNotification(title, options);
+                                                                        }
+                                                                }
+                                                        }).catch(err => console.error(err));
                                         }
                                         reader.readAsText(myBlob);
                                 });
                         });
                 });
-                console.log(lookingFor, " @ ", api_url);
-                const options = {
-                        body: time,
-                        silent: true,
-                        icon: 'icon.png',
-                        tag: 'x'
-                }
-                console.log(time);
-                self.registration.showNotification(time + " " + lookingFor, options);
-                fetch(api_url)
-                        .then(res => res.json())
-                        .then((data) => {
-                                for (var i in data["Data"]["TrainPositions"]) {
-                                        var train = data["Data"]["TrainPositions"][i];
-                                        if (train["TrainNumber"] == lookingFor) {
-                                                currentDelay = train["DifMin"];
 
-                                                title = train["DifType"] + ": " + currentDelay + " min";
-                                                var info = "For train " + train["TrainNumber"] + "\nAs of [ " + time + "]";
-                                                if (train["DifType"] != "DELAY") {
-                                                        info = "no delay";
-                                                } else if (lastDelay != currentDelay) {
-                                                        lastDelay = train["DifMin"];
-                                                        title = train["DifType"] + ": " + currentDelay + " min";
-                                                        console.log(title + " " + info);
-                                                        const title = "Delay: " + currentDelay;
-                                                }
-                                                const options = {
-                                                        body: info,
-                                                        silent: true,
-                                                        icon: 'icon.png',
-                                                        tag: 'report'
-                                                }
-
-                                                self.registration.showNotification(title, options);
-                                        }
-                                }
-                        }).catch(err => console.error(err));
         }
         setInterval(checker, 10000)
 };
